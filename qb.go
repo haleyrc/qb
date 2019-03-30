@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-func In(field string) Query {
+func In(field string) InClause {
 	return InClause(field)
 }
 
@@ -41,7 +41,7 @@ func (c ComparisonClause) String() string {
 	return c.Build()
 }
 
-func Greater(field string, value interface{}) Query {
+func Greater(field string, value interface{}) ComparisonClause {
 	return ComparisonClause{
 		Op:    ">",
 		Field: field,
@@ -49,7 +49,7 @@ func Greater(field string, value interface{}) Query {
 	}
 }
 
-func GreaterEqual(field string, value interface{}) Query {
+func GreaterEqual(field string, value interface{}) ComparisonClause {
 	return ComparisonClause{
 		Op:    ">=",
 		Field: field,
@@ -57,7 +57,7 @@ func GreaterEqual(field string, value interface{}) Query {
 	}
 }
 
-func Less(field string, value interface{}) Query {
+func Less(field string, value interface{}) ComparisonClause {
 	return ComparisonClause{
 		Op:    "<",
 		Field: field,
@@ -65,7 +65,7 @@ func Less(field string, value interface{}) Query {
 	}
 }
 
-func LessEqual(field string, value interface{}) Query {
+func LessEqual(field string, value interface{}) ComparisonClause {
 	return ComparisonClause{
 		Op:    "<=",
 		Field: field,
@@ -73,7 +73,7 @@ func LessEqual(field string, value interface{}) Query {
 	}
 }
 
-func Equal(field string, value interface{}) Query {
+func Equal(field string, value interface{}) ComparisonClause {
 	return ComparisonClause{
 		Op:    "=",
 		Field: field,
@@ -81,7 +81,7 @@ func Equal(field string, value interface{}) Query {
 	}
 }
 
-func Or(comp1, comp2 Query) Query {
+func Or(comp1, comp2 Query) BooleanQuery {
 	return BooleanQuery{
 		Op:          "OR",
 		Comparison1: comp1,
@@ -89,7 +89,7 @@ func Or(comp1, comp2 Query) Query {
 	}
 }
 
-func And(comp1, comp2 Query) Query {
+func And(comp1, comp2 Query) BooleanQuery {
 	return BooleanQuery{
 		Op:          "AND",
 		Comparison1: comp1,
@@ -122,7 +122,7 @@ type SelectQuery struct {
 	WhereClause Query
 }
 
-func (q SelectQuery) Where(wq Query) Query {
+func (q SelectQuery) Where(wq Query) SelectQuery {
 	q.WhereClause = wq
 	return q
 }
