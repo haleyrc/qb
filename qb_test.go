@@ -68,7 +68,7 @@ func TestQuery(t *testing.T) {
 					qb.Greater("cost", 10),
 					qb.Less("dol", 3),
 				)),
-			want: `SELECT id FROM vehicles WHERE cost > 10 AND dol < 3;`,
+			want: `SELECT id FROM vehicles WHERE (cost > 10 AND dol < 3);`,
 		},
 		testcase{
 			name: "simple query with or",
@@ -78,7 +78,20 @@ func TestQuery(t *testing.T) {
 					qb.Greater("cost", 10),
 					qb.Less("dol", 3),
 				)),
-			want: `SELECT id FROM vehicles WHERE cost > 10 OR dol < 3;`,
+			want: `SELECT id FROM vehicles WHERE (cost > 10 OR dol < 3);`,
+		},
+		testcase{
+			name: "query with nested boolean",
+			query: qb.
+				Select("vehicles", "id").
+				Where(
+					qb.And(
+						qb.Equal("model", "Honda"),
+						qb.Or(
+							qb.Greater("cost", 10),
+							qb.Less("dol", 3),
+						))),
+			want: `SELECT id FROM vehicles WHERE (model = 'Honda' AND (cost > 10 OR dol < 3));`,
 		},
 		testcase{
 			name: "simple query with in",

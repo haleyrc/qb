@@ -104,7 +104,7 @@ type BooleanQuery struct {
 }
 
 func (q BooleanQuery) Build() string {
-	return fmt.Sprintf("%s %s %s", q.Comparison1.Build(), q.Op, q.Comparison2.Build())
+	return fmt.Sprintf("(%s %s %s)", q.Comparison1.Build(), q.Op, q.Comparison2.Build())
 }
 
 func (q BooleanQuery) String() string {
