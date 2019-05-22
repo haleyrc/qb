@@ -20,25 +20,8 @@ func (c InClause) String() string {
 	return c.Build()
 }
 
-type ComparisonClause struct {
-	Op    string
-	Field string
-	Value interface{}
-}
-
-func (c ComparisonClause) Build() string {
-	switch v := c.Value.(type) {
-	case string:
-		return fmt.Sprintf("%s %s '%s'", c.Field, c.Op, v)
-	case int:
-		return fmt.Sprintf("%s %s %d", c.Field, c.Op, v)
-	default:
-		return fmt.Sprintf("%s %s %s", c.Field, c.Op, c.Value)
-	}
-}
-
-func (c ComparisonClause) String() string {
-	return c.Build()
+func (c InClause) Values() []interface{} {
+	return nil
 }
 
 func Greater(field string, value interface{}) ComparisonClause {
@@ -81,6 +64,24 @@ func Equal(field string, value interface{}) ComparisonClause {
 	}
 }
 
+type ComparisonClause struct {
+	Op    string
+	Field string
+	Value interface{}
+}
+
+func (c ComparisonClause) Build() string {
+	return fmt.Sprintf("%s %s ?", c.Field, c.Op)
+}
+
+func (c ComparisonClause) String() string {
+	return c.Build()
+}
+
+func (c ComparisonClause) Values() []interface{} {
+	return []interface{}{c.Value}
+}
+
 func Or(comp1, comp2 Query) BooleanQuery {
 	return BooleanQuery{
 		Op:          "OR",
@@ -111,20 +112,29 @@ func (q BooleanQuery) String() string {
 	return q.Build()
 }
 
+func (q BooleanQuery) Values() []interface{} {
+	vals := q.Comparison1.Values()
+	return append(vals, q.Comparison2.Values()...)
+}
+
 type Query interface {
 	fmt.Stringer
 	Build() string
+	Values() []interface{}
+}
+
+func Select(table string, fields ...string) SelectQuery {
+	return SelectQuery{
+		Table:  table,
+		Fields: fields,
+	}
 }
 
 type SelectQuery struct {
 	Table       string
 	Fields      []string
+	Vals        []interface{}
 	WhereClause Query
-}
-
-func (q SelectQuery) Where(wq Query) SelectQuery {
-	q.WhereClause = wq
-	return q
 }
 
 func (q SelectQuery) Build() string {
@@ -149,18 +159,14 @@ func (q SelectQuery) String() string {
 	return string(b)
 }
 
-func Select(table string, fields ...string) SelectQuery {
-	return SelectQuery{
-		Table:  table,
-		Fields: fields,
-	}
+func (q SelectQuery) Values() []interface{} {
+	return q.Vals
 }
 
-func Join(sq1, sq2 SelectQuery) JoinQuery {
-	return JoinQuery{
-		Query1: sq1,
-		Query2: sq2,
-	}
+func (q SelectQuery) Where(wq Query) SelectQuery {
+	q.WhereClause = wq
+	q.Vals = append(q.Vals, wq.Values()...)
+	return q
 }
 
 type On struct {
@@ -174,6 +180,17 @@ func (o On) Build() string {
 
 func (o On) String() string {
 	return o.Build()
+}
+
+func (o On) Values() []interface{} {
+	return nil
+}
+
+func Join(sq1, sq2 SelectQuery) JoinQuery {
+	return JoinQuery{
+		Query1: sq1,
+		Query2: sq2,
+	}
 }
 
 type JoinQuery struct {
@@ -196,6 +213,14 @@ func (q JoinQuery) Build() string {
 	return stmt + ";"
 }
 
+func (q JoinQuery) On(field1, field2 string) JoinQuery {
+	q.OnClause = On{
+		Field1: field1,
+		Field2: field2,
+	}
+	return q
+}
+
 func (q JoinQuery) String() string {
 	b, err := json.MarshalIndent(q, "", "    ")
 	if err != nil {
@@ -204,10 +229,7 @@ func (q JoinQuery) String() string {
 	return string(b)
 }
 
-func (q JoinQuery) On(field1, field2 string) JoinQuery {
-	q.OnClause = On{
-		Field1: field1,
-		Field2: field2,
-	}
-	return q
+func (q JoinQuery) Values() []interface{} {
+	vals := q.Query1.Values()
+	return append(vals, q.Query2.Values()...)
 }
