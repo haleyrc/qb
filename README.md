@@ -1,12 +1,22 @@
 # qb
 
-`qb` is a library for building simple SQL queries using a higher-level language
-suitable for reducing boilerplate for common operations.
+`qb` is a library for building simple SQL queries using a higher-level language suitable for reducing boilerplate for common operations.
 
-## TODO 
+The actual query building part does not offer 100% parity with the SQL spec, and there are a lot of much better and more battle-tested libraries out there for it. This is half learning experience and half start-of-some-pie-in-the-sky-idea-for-codegen.
+
+**Disclaimer Time**
+
+Per the above, if you use this in production, the onus is on you to make sure that it performs in the way you are expecting and if it doesn't, to help maintain the library by adding issues and PRs.
+
+## TODO
+
 - [ ] `AS` clauses for fields
-- [ ] Extend paired ops out to infinite number
-- [ ] Other types of queries (`UPDATE`, `DELETE`, `INSERT`)
+- [ ] Extend paired ops (boolean and comparision) out to infinite number
+- [X] `DELETE`
+- [ ] `UPDATE`
+- [ ] `INSERT`
+- [ ] `LIMIT`
+- [ ] `ORDER BY`
 
 ## Future
 
